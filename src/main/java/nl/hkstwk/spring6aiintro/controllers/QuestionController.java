@@ -5,6 +5,7 @@ import nl.hkstwk.spring6aiintro.model.Answer;
 import nl.hkstwk.spring6aiintro.model.Question;
 import nl.hkstwk.spring6aiintro.services.OpenAIService;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -13,8 +14,8 @@ public class QuestionController {
 
     private final OpenAIService openAIService;
 
-    @PostMapping
-    public Answer askQuestion(Question question) {
+    @PostMapping("/ask")
+    public Answer askQuestion(@RequestBody Question question) {
         return openAIService.getAnswer(question);
     }
 }

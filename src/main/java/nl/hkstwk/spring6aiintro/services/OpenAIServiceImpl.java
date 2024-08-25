@@ -1,6 +1,5 @@
 package nl.hkstwk.spring6aiintro.services;
 
-import lombok.RequiredArgsConstructor;
 import nl.hkstwk.spring6aiintro.model.Answer;
 import nl.hkstwk.spring6aiintro.model.Question;
 import org.springframework.ai.chat.client.ChatClient;
