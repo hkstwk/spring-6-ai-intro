@@ -1,5 +1,8 @@
 package nl.hkstwk.spring6aiintro.services;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import nl.hkstwk.spring6aiintro.model.Answer;
 import nl.hkstwk.spring6aiintro.model.GetCapitalRequest;
@@ -19,9 +22,11 @@ import java.util.Map;
 public class OpenAIServiceImpl implements OpenAIService {
 
     private ChatClient chatClient;
+    private final ObjectMapper objectMapper;
 
-    public OpenAIServiceImpl(ChatClient.Builder chatClientBuider) {
+    public OpenAIServiceImpl(ChatClient.Builder chatClientBuider, ObjectMapper objectMapper) {
         this.chatClient = chatClientBuider.build();
+        this.objectMapper = objectMapper;
     }
 
     @Value("classpath:templates/get-capital-prompt.st")
@@ -29,6 +34,7 @@ public class OpenAIServiceImpl implements OpenAIService {
 
     @Value("classpath:templates/get-capital-with-info-prompt.st")
     private Resource getCapitalWithInfoPrompt;
+
 
     @Override
     public String getAnswer(String question) {
@@ -55,7 +61,17 @@ public class OpenAIServiceImpl implements OpenAIService {
         log.info("Prompt: {}", prompt.getContents());
         ChatResponse chatResponse = chatClient.prompt(prompt).call().chatResponse();
 
-        return new Answer(chatResponse.getResult().getOutput().getContent());
+        log.info(chatResponse.getResult().getOutput().getContent());
+        String responseString;
+        try {
+            JsonNode jsonNode = objectMapper.readTree(chatResponse.getResult().getOutput().getContent());
+            responseString = jsonNode.get("answer").asText();
+
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+        return new Answer(responseString);
+
     }
 
     @Override
