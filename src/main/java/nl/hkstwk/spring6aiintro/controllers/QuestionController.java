@@ -2,6 +2,7 @@ package nl.hkstwk.spring6aiintro.controllers;
 
 import lombok.RequiredArgsConstructor;
 import nl.hkstwk.spring6aiintro.model.Answer;
+import nl.hkstwk.spring6aiintro.model.GetCapitalRequest;
 import nl.hkstwk.spring6aiintro.model.Question;
 import nl.hkstwk.spring6aiintro.services.OpenAIService;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -17,5 +18,10 @@ public class QuestionController {
     @PostMapping("/ask")
     public Answer askQuestion(@RequestBody Question question) {
         return openAIService.getAnswer(question);
+    }
+
+    @PostMapping("/capital")
+    public Answer getCapital(@RequestBody GetCapitalRequest getCapitalRequest){
+        return openAIService.getAnswer(getCapitalRequest);
     }
 }
