@@ -6,11 +6,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import nl.hkstwk.spring6aiintro.model.Answer;
 import nl.hkstwk.spring6aiintro.model.GetCapitalRequest;
+import nl.hkstwk.spring6aiintro.model.GetCapitalResponse;
 import nl.hkstwk.spring6aiintro.model.Question;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.chat.prompt.PromptTemplate;
+import org.springframework.ai.parser.BeanOutputParser;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
@@ -54,24 +56,19 @@ public class OpenAIServiceImpl implements OpenAIService {
     }
 
     @Override
-    public Answer getCapital(GetCapitalRequest getCapitalRequest) {
+    public GetCapitalResponse getCapital(GetCapitalRequest getCapitalRequest) {
+        BeanOutputParser<GetCapitalResponse> parser = new BeanOutputParser<>(GetCapitalResponse.class);
+        String format = parser.getFormat();
+        log.info("Format:  {}", format);
+
         log.info("Received GetCapitalRequest: {}", getCapitalRequest.stateOrCountry());
         PromptTemplate promptTemplate = new PromptTemplate(getCapitalPrompt);
-        Prompt prompt = promptTemplate.create(Map.of("stateOrCountry", getCapitalRequest.stateOrCountry()));
+        Prompt prompt = promptTemplate.create(Map.of("stateOrCountry", getCapitalRequest.stateOrCountry(), "capitalFormat", format));
         log.info("Prompt: {}", prompt.getContents());
         ChatResponse chatResponse = chatClient.prompt(prompt).call().chatResponse();
-
         log.info(chatResponse.getResult().getOutput().getContent());
-        String responseString;
-        try {
-            JsonNode jsonNode = objectMapper.readTree(chatResponse.getResult().getOutput().getContent());
-            responseString = jsonNode.get("answer").asText();
 
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
-        return new Answer(responseString);
-
+        return parser.parse(chatResponse.getResult().getOutput().getContent());
     }
 
     @Override
