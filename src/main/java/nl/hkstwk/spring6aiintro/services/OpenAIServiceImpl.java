@@ -12,6 +12,7 @@ import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.chat.prompt.PromptTemplate;
+import org.springframework.ai.converter.BeanOutputConverter;
 import org.springframework.ai.parser.BeanOutputParser;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
@@ -57,8 +58,8 @@ public class OpenAIServiceImpl implements OpenAIService {
 
     @Override
     public GetCapitalResponse getCapital(GetCapitalRequest getCapitalRequest) {
-        BeanOutputParser<GetCapitalResponse> parser = new BeanOutputParser<>(GetCapitalResponse.class);
-        String format = parser.getFormat();
+        BeanOutputConverter<GetCapitalResponse> converter = new BeanOutputConverter<>(GetCapitalResponse.class);
+        String format = converter.getFormat();
         log.info("Format:  {}", format);
 
         log.info("Received GetCapitalRequest: {}", getCapitalRequest.stateOrCountry());
@@ -68,7 +69,7 @@ public class OpenAIServiceImpl implements OpenAIService {
         ChatResponse chatResponse = chatClient.prompt(prompt).call().chatResponse();
         log.info(chatResponse.getResult().getOutput().getContent());
 
-        return parser.parse(chatResponse.getResult().getOutput().getContent());
+        return converter.convert(chatResponse.getResult().getOutput().getContent());
     }
 
     @Override
