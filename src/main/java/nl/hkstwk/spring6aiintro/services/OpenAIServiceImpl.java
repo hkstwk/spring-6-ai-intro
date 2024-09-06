@@ -1,7 +1,5 @@
 package nl.hkstwk.spring6aiintro.services;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import nl.hkstwk.spring6aiintro.model.Answer;
@@ -14,7 +12,6 @@ import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.chat.prompt.PromptTemplate;
 import org.springframework.ai.converter.BeanOutputConverter;
-import org.springframework.ai.parser.BeanOutputParser;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
@@ -35,10 +32,6 @@ public class OpenAIServiceImpl implements OpenAIService {
 
     @Value("classpath:templates/get-capital-prompt.st")
     private Resource getCapitalPrompt;
-
-    @Value("classpath:templates/get-capital-with-info-prompt.st")
-    private Resource getCapitalWithInfoPrompt;
-
 
     @Override
     public String getAnswer(String question) {
@@ -79,8 +72,8 @@ public class OpenAIServiceImpl implements OpenAIService {
         String format = converter.getFormat();
         log.info("Format: {}", format);
 
-        PromptTemplate promptTemplate = new PromptTemplate(getCapitalWithInfoPrompt);
-        Prompt prompt = promptTemplate.create(Map.of("stateOrCountry", getCapitalRequest.stateOrCountry(), "capitalWithInfoFormat", format));
+        PromptTemplate promptTemplate = new PromptTemplate(getCapitalPrompt);
+        Prompt prompt = promptTemplate.create(Map.of("stateOrCountry", getCapitalRequest.stateOrCountry(), "capitalFormat", format));
         ChatResponse chatResponse = chatClient.prompt(prompt).call().chatResponse();
 
         return converter.convert(chatResponse.getResult().getOutput().getContent());
