@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import nl.hkstwk.spring6aiintro.model.Answer;
 import nl.hkstwk.spring6aiintro.model.GetCapitalRequest;
 import nl.hkstwk.spring6aiintro.model.GetCapitalResponse;
+import nl.hkstwk.spring6aiintro.model.GetCapitalWithInfoResponse;
 import nl.hkstwk.spring6aiintro.model.Question;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.model.ChatResponse;
@@ -73,11 +74,15 @@ public class OpenAIServiceImpl implements OpenAIService {
     }
 
     @Override
-    public Answer getCapitalWithInfo(GetCapitalRequest getCapitalRequest) {
+    public GetCapitalWithInfoResponse getCapitalWithInfo(GetCapitalRequest getCapitalRequest) {
+        BeanOutputConverter<GetCapitalWithInfoResponse> converter = new BeanOutputConverter<>(GetCapitalWithInfoResponse.class);
+        String format = converter.getFormat();
+        log.info("Format: {}", format);
+
         PromptTemplate promptTemplate = new PromptTemplate(getCapitalWithInfoPrompt);
-        Prompt prompt = promptTemplate.create(Map.of("stateOrCountry", getCapitalRequest.stateOrCountry()));
+        Prompt prompt = promptTemplate.create(Map.of("stateOrCountry", getCapitalRequest.stateOrCountry(), "capitalWithInfoFormat", format));
         ChatResponse chatResponse = chatClient.prompt(prompt).call().chatResponse();
 
-        return new Answer(chatResponse.getResult().getOutput().getContent());
+        return converter.convert(chatResponse.getResult().getOutput().getContent());
     }
 }
